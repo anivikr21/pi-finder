@@ -3,89 +3,276 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pi Substring Finder</title>
+  <title>π Finder</title>
   <style>
-    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    body { margin: 0; padding: 24px; background: #0b0f14; color: #e6edf3; }
-    .card { max-width: 860px; margin: 0 auto; background: #121a23; border: 1px solid #233244; border-radius: 14px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
-    h1 { margin: 0 0 8px; font-size: 20px; }
-    p { margin: 8px 0 14px; color: #b7c4d6; line-height: 1.4; }
-    .row { display: grid; grid-template-columns: 1fr 220px; gap: 12px; align-items: end; }
-    label { display: block; font-size: 12px; color: #b7c4d6; margin-bottom: 6px; }
-    input, button { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; border: 1px solid #2b3d53; background: #0e1620; color: #e6edf3; }
-    input::placeholder { color: #6f829b; }
-    button { cursor: pointer; border-color: #375a86; background: linear-gradient(180deg, #1a3b63, #122b4a); font-weight: 600; }
-    button:disabled { cursor: not-allowed; opacity: .6; }
-    .smallrow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
-    .status { margin-top: 14px; padding: 12px; border-radius: 12px; background: #0e1620; border: 1px solid #233244; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
-    .ok { color: #8ef0a8; }
-    .warn { color: #ffd27a; }
-    .bad { color: #ff9aa2; }
-    .hint { color: #9db0c7; font-size: 12px; margin-top: 10px; }
-    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 12px; }
+    :root{
+      --bg0:#05070b;
+      --bg1:#070a10;
+      --glass: rgba(255,255,255,.08);
+      --glass2: rgba(255,255,255,.06);
+      --stroke: rgba(255,255,255,.16);
+      --stroke2: rgba(255,255,255,.10);
+      --text:#e9eef7;
+      --muted: rgba(233,238,247,.72);
+      --muted2: rgba(233,238,247,.56);
+      --shadow: 0 18px 70px rgba(0,0,0,.55);
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      overflow-x:hidden;
+      background:
+        radial-gradient(1200px 800px at 20% 10%, rgba(120,180,255,.22), transparent 60%),
+        radial-gradient(900px 700px at 80% 25%, rgba(255,120,220,.16), transparent 62%),
+        radial-gradient(900px 700px at 45% 90%, rgba(120,255,210,.12), transparent 58%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+    }
+    /* floating blobs */
+    .blob{
+      position:fixed;
+      filter: blur(34px) saturate(1.2);
+      opacity:.55;
+      pointer-events:none;
+      transform: translateZ(0);
+      animation: float 10s ease-in-out infinite;
+    }
+    .b1{ width:520px; height:520px; left:-140px; top:-120px;
+      background: radial-gradient(circle at 30% 30%, rgba(120,180,255,.9), transparent 60%),
+                  radial-gradient(circle at 70% 60%, rgba(255,120,220,.8), transparent 62%);
+    }
+    .b2{ width:460px; height:460px; right:-120px; top:40px; animation-duration: 13s;
+      background: radial-gradient(circle at 40% 35%, rgba(120,255,210,.85), transparent 62%),
+                  radial-gradient(circle at 70% 70%, rgba(255,180,120,.6), transparent 64%);
+    }
+    .b3{ width:540px; height:540px; left:18%; bottom:-220px; animation-duration: 15s;
+      background: radial-gradient(circle at 40% 35%, rgba(255,120,220,.65), transparent 62%),
+                  radial-gradient(circle at 70% 70%, rgba(120,180,255,.65), transparent 64%);
+    }
+    @keyframes float{
+      0%,100%{ transform: translate3d(0,0,0) scale(1); }
+      50%{ transform: translate3d(0,-26px,0) scale(1.03); }
+    }
+
+    .wrap{
+      min-height:100%;
+      display:grid;
+      place-items:center;
+      padding: 34px 16px;
+    }
+    .panel{
+      width:min(860px, 100%);
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.05));
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      position:relative;
+      overflow:hidden;
+    }
+    .panel::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(900px 300px at 20% 0%, rgba(255,255,255,.22), transparent 60%),
+                  radial-gradient(700px 320px at 80% 10%, rgba(255,255,255,.12), transparent 65%);
+      pointer-events:none;
+      opacity:.7;
+    }
+    header{
+      position:relative;
+      padding: 22px 22px 12px 22px;
+      display:flex;
+      gap:14px;
+      align-items:center;
+      justify-content:space-between;
+      border-bottom: 1px solid var(--stroke2);
+    }
+    .title{
+      display:flex; flex-direction:column; gap:2px;
+    }
+    h1{
+      margin:0;
+      font-size: 18px;
+      letter-spacing:.2px;
+    }
+    .sub{
+      margin:0;
+      color:var(--muted);
+      font-size: 13px;
+      line-height:1.35;
+    }
+    .pill{
+      border: 1px solid var(--stroke2);
+      background: rgba(0,0,0,.16);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-size: 12px;
+      white-space:nowrap;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    main{
+      position:relative;
+      padding: 18px 22px 22px 22px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 210px;
+      gap:12px;
+      align-items:end;
+    }
+    label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin: 0 0 6px 2px;
+    }
+    input{
+      width:100%;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--stroke2);
+      background: rgba(0,0,0,.22);
+      color: var(--text);
+      outline:none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.10);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: border-color .15s ease, transform .15s ease;
+    }
+    input:focus{
+      border-color: rgba(140,200,255,.55);
+      transform: translateY(-1px);
+    }
+    input::placeholder{ color: rgba(233,238,247,.42); }
+    button{
+      width:100%;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(160,210,255,.34);
+      background: linear-gradient(180deg, rgba(130,200,255,.22), rgba(120,180,255,.08));
+      color: var(--text);
+      font-weight: 650;
+      cursor:pointer;
+      box-shadow:
+        0 12px 34px rgba(0,0,0,.35),
+        inset 0 1px 0 rgba(255,255,255,.18);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: transform .12s ease, border-color .12s ease, filter .12s ease;
+    }
+    button:hover{ transform: translateY(-1px); border-color: rgba(170,220,255,.55); filter: brightness(1.06); }
+    button:active{ transform: translateY(0px) scale(.99); }
+    button:disabled{ opacity:.65; cursor:not-allowed; }
+
+    .row2{
+      margin-top: 12px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+
+    .out{
+      margin-top: 14px;
+      border-radius: 18px;
+      border: 1px solid var(--stroke2);
+      background: rgba(0,0,0,.20);
+      padding: 14px 14px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.10);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .status{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    .answer{
+      font-size: 22px;
+      font-weight: 750;
+      letter-spacing:.2px;
+      margin: 0;
+    }
+    .hint{
+      margin: 8px 0 0;
+      color: var(--muted2);
+      font-size: 12px;
+      line-height:1.45;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>Find a string inside π</h1>
-    <p>
-      Enter digits (like <span class="mono">14</span> or <span class="mono">271828</span>) and this page finds where they first appear in π
-      <em>after the decimal point</em>. Locations are <strong>1-based</strong>:
-      <span class="mono">14 → 1</span>, <span class="mono">15 → 3</span>.
-    </p>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
 
-    <div class="row">
-      <div>
-        <label for="query">Digits to find</label>
-        <input id="query" inputmode="numeric" placeholder="e.g. 14 or 314159" autocomplete="off" />
-      </div>
-      <div>
-        <label>&nbsp;</label>
-        <button id="findBtn">Generate π & Search</button>
-      </div>
-    </div>
+  <div class="wrap">
+    <div class="panel">
+      <header>
+        <div class="title">
+          <h1>π Finder</h1>
+          <p class="sub">Find the <span class="mono">1-based</span> location of your digits in π <strong>after the decimal</strong>.</p>
+        </div>
+        <div class="pill mono">14 → 1 · 15 → 3</div>
+      </header>
 
-    <div class="grid3">
-      <div>
-        <label for="digits">π digits to generate/search</label>
-        <input id="digits" inputmode="numeric" value="200000" />
-      </div>
-      <div>
-        <label for="chunk">UI update chunk (digits)</label>
-        <input id="chunk" inputmode="numeric" value="5000" />
-      </div>
-      <div>
-        <label for="maxLen">Max query length</label>
-        <input id="maxLen" inputmode="numeric" value="64" />
-      </div>
-    </div>
+      <main>
+        <div class="grid">
+          <div>
+            <label for="query">Digits to search</label>
+            <input id="query" inputmode="numeric" placeholder="e.g. 141592" autocomplete="off" />
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button id="findBtn">Search</button>
+          </div>
+        </div>
 
-    <div class="smallrow">
-      <button id="demo14">Demo: find 14</button>
-      <button id="demo15">Demo: find 15</button>
-    </div>
+        <div class="row2">
+          <div>
+            <label for="digits">π digits to generate/search</label>
+            <input id="digits" inputmode="numeric" value="200000" />
+          </div>
+          <div>
+            <label for="maxLen">Max query length</label>
+            <input id="maxLen" inputmode="numeric" value="64" />
+          </div>
+        </div>
 
-    <div class="status" id="status">
-      <div><strong>Status:</strong> <span id="statusText" class="warn">Ready.</span></div>
-      <div style="margin-top:8px" class="mono" id="result"></div>
-      <div style="margin-top:8px" class="mono" id="preview"></div>
-      <div class="hint">
-        Tip: Generating 200k digits is fine in most modern browsers. If you want to search deeper, increase “π digits”
-        (it will take longer).
-      </div>
+        <div class="row2">
+          <button id="demo14">Demo: 14</button>
+          <button id="demo15">Demo: 15</button>
+        </div>
+
+        <div class="out">
+          <div class="status">
+            <span id="statusText">Ready.</span>
+            <span class="mono" id="meta"></span>
+          </div>
+          <!-- ONE OUTPUT ONLY -->
+          <p class="answer mono" id="answer">—</p>
+          <p class="hint" id="hint">
+            Location counts digits <em>after</em> “3.” (so the first digit after the decimal is location 1).
+          </p>
+        </div>
+      </main>
     </div>
   </div>
 
 <script>
 /**
- * Pi digit generator (base-10 spigot).
- * Produces digits of pi in order. First digit is '3', then decimal digits.
- * Reference: Rabinowitz & Wagon spigot algorithm (adapted).
+ * Base-10 spigot algorithm for digits of pi.
+ * Returns a string of length `countDigits` that begins with '3' (no decimal point).
  */
-function generatePiDigits(countDigits, onProgress) {
-  // countDigits includes the leading '3' + (countDigits-1) more digits
-  // We'll generate exactly countDigits digits total.
+function generatePiDigits(countDigits, onProgressEvery) {
   const n = Math.floor((countDigits * 10) / 3) + 1;
   const a = new Int32Array(n);
   a.fill(2);
@@ -121,120 +308,88 @@ function generatePiDigits(countDigits, onProgress) {
       }
     }
 
-    if (onProgress && (j % 5000 === 0) && j !== 0) onProgress(j, out.length);
+    if (onProgressEvery && j % onProgressEvery === 0 && j !== 0) {
+      // allow UI to update without making things too slow
+      // (we do status updates outside; this is just a hook)
+    }
   }
 
   out += String(predigit);
-  return out; // includes a leading '0' artifact; we fix below.
+  // Spigot variants often include a leading '0' we remove:
+  return out.slice(1).slice(0, countDigits);
 }
 
-function normalizeSpigotOutput(raw, wantTotalDigits) {
-  // The standard spigot adaptation emits a leading '0' then digits of pi.
-  // We remove the first char and keep wantTotalDigits digits.
-  const s = raw.slice(1);
-  return s.slice(0, wantTotalDigits);
-}
+function setText(id, text){ document.getElementById(id).textContent = text; }
+function prettyNum(x){ return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
 
-function setStatus(text, cls) {
-  const el = document.getElementById("statusText");
-  el.textContent = text;
-  el.className = cls || "";
-}
-
-function prettyNum(x) {
-  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
-async function runSearch(query) {
+async function searchOnce(query) {
+  const findBtn = document.getElementById("findBtn");
   const digitsToGen = Math.max(50, parseInt(document.getElementById("digits").value, 10) || 200000);
-  const chunk = Math.max(1000, parseInt(document.getElementById("chunk").value, 10) || 5000);
   const maxLen = Math.max(1, parseInt(document.getElementById("maxLen").value, 10) || 64);
 
-  const resultEl = document.getElementById("result");
-  const previewEl = document.getElementById("preview");
-  resultEl.textContent = "";
-  previewEl.textContent = "";
+  setText("answer", "—");
+  setText("meta", "");
+  setText("hint", "Location counts digits after “3.” (first digit after the decimal is location 1).");
 
   query = (query || "").trim();
+
   if (!/^\d+$/.test(query)) {
-    setStatus("Please enter digits only (0–9).", "bad");
+    setText("statusText", "Enter digits only (0–9).");
+    setText("hint", "Example: 14 → 1, 15 → 3");
     return;
   }
   if (query.length > maxLen) {
-    setStatus(`Query too long (max ${maxLen}).`, "bad");
+    setText("statusText", `Too long (max ${maxLen}).`);
+    setText("hint", "Shorten your query or raise the max length.");
+    return;
+  }
+  if (digitsToGen <= query.length + 1) {
+    setText("statusText", "Not enough π digits to search.");
+    setText("hint", "Increase “π digits to generate/search”.");
     return;
   }
 
-  // We'll generate digits of pi including the leading '3'
-  // and search only AFTER the decimal, so we'll need at least 1 + digitsAfterDecimal.
-  const totalDigits = digitsToGen; // includes the leading '3'
-  const digitsAfterDecimal = totalDigits - 1;
-
-  setStatus(`Generating ${prettyNum(totalDigits)} digits of π…`, "warn");
-
-  // Generate in a microtask to allow UI paint
+  findBtn.disabled = true;
+  setText("statusText", `Generating ${prettyNum(digitsToGen)} digits of π…`);
   await new Promise(requestAnimationFrame);
 
-  let lastProgress = 0;
-  const raw = generatePiDigits(totalDigits, (j, outLen) => {
-    // Update status roughly based on loop j
-    if (j - lastProgress >= chunk) {
-      lastProgress = j;
-      setStatus(`Generating π… step ${prettyNum(j)} / ${prettyNum(totalDigits)}`, "warn");
-    }
-  });
-  const piDigits = normalizeSpigotOutput(raw, totalDigits); // e.g. "31415926..."
-  const afterDecimal = piDigits.slice(1); // drop the leading '3'
-
-  setStatus(`Searching for "${query}" in ${prettyNum(digitsAfterDecimal)} decimal digits…`, "warn");
+  const pi = generatePiDigits(digitsToGen);
+  const afterDecimal = pi.slice(1); // drop '3'
+  setText("statusText", `Searching…`);
   await new Promise(requestAnimationFrame);
 
-  const idx = afterDecimal.indexOf(query); // 0-based
-  if (idx === -1) {
-    setStatus("Not found in the generated range.", "bad");
-    resultEl.textContent =
-      `Searched first ${prettyNum(digitsAfterDecimal)} digits after the decimal.\n` +
-      `Try increasing “π digits to generate/search”.`;
-    return;
+  const idx0 = afterDecimal.indexOf(query); // 0-based
+  const searched = afterDecimal.length;
+
+  if (idx0 === -1) {
+    setText("statusText", "Not found in this range.");
+    setText("answer", "—");
+    setText("meta", `searched ${prettyNum(searched)} digits`);
+    setText("hint", "Increase “π digits to generate/search” to look deeper.");
+  } else {
+    const location1 = idx0 + 1; // 1-based after decimal
+    setText("statusText", "Found.");
+    setText("answer", String(location1));
+    setText("meta", `within first ${prettyNum(searched)} digits`);
+    setText("hint", `“${query}” starts at position ${prettyNum(location1)} after the decimal.`);
   }
 
-  // Convert to 1-based location after decimal
-  const location1Based = idx + 1;
-
-  setStatus("Found!", "ok");
-  resultEl.textContent =
-    `First occurrence location (1-based, after the decimal): ${prettyNum(location1Based)}\n` +
-    `0-based index (after the decimal): ${prettyNum(idx)}\n` +
-    `Example check: "14" → 1, "15" → 3`;
-
-  // Show a little context around the match
-  const start = Math.max(0, idx - 10);
-  const end = Math.min(afterDecimal.length, idx + query.length + 10);
-  const context = afterDecimal.slice(start, end);
-  const caret = " ".repeat(idx - start) + "^".repeat(query.length);
-
-  previewEl.textContent =
-    `π = 3.${afterDecimal.slice(0, 60)}…\n\n` +
-    `Context (after decimal):\n` +
-    `${context}\n` +
-    `${caret}`;
+  findBtn.disabled = false;
 }
 
 document.getElementById("findBtn").addEventListener("click", () => {
-  runSearch(document.getElementById("query").value);
+  searchOnce(document.getElementById("query").value);
 });
 document.getElementById("demo14").addEventListener("click", () => {
   document.getElementById("query").value = "14";
-  runSearch("14");
+  searchOnce("14");
 });
 document.getElementById("demo15").addEventListener("click", () => {
   document.getElementById("query").value = "15";
-  runSearch("15");
+  searchOnce("15");
 });
-
-// Enter key triggers search
 document.getElementById("query").addEventListener("keydown", (e) => {
-  if (e.key === "Enter") runSearch(document.getElementById("query").value);
+  if (e.key === "Enter") searchOnce(document.getElementById("query").value);
 });
 </script>
 </body>

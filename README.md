@@ -33,7 +33,7 @@ All positions refer to digits **after** the decimal point in π.
 
 ## 🚀 How to Run
 
-1. Click on the Github Pages link: anivikr21.github.io/pi-finder/
+1. Click on the Github Pages link: [anivikr21.github.io/pi-finder/](https://anivikr21.github.io/pi-finder/a-pi-finder.html)
    
    OR
 
